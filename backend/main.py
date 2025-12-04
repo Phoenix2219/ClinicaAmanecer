@@ -3,6 +3,7 @@ from pydantic import BaseModel
 import pandas as pd
 import pickle
 from fastapi.middleware.cors import CORSMiddleware
+import pickle, os
 
 # ----------- CONFIG FASTAPI ------------
 app = FastAPI()
@@ -16,7 +17,9 @@ app.add_middleware(
 )
 
 # ----------- CARGAR MODELO ------------
-modelo = pickle.load(open("modelo.pkl", "rb"))
+ruta_modelo = os.path.join(os.path.dirname(__file__), "modelo.pkl")
+with open(ruta_modelo, "rb") as file:
+    modelo = pickle.load(file)
 
 # ----------- MODELO DE DATOS DEL REQUEST -----------
 class InputData(BaseModel):
