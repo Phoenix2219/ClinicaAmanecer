@@ -55,11 +55,15 @@ def predict_arbol(data: InputData):
     df = pd.DataFrame([data.dict()])
 
     pred = modelo_arbol.predict(df)[0]
+    proba = modelo_arbol.predict_proba(df)[0]   # Probabilidades por clase
+
+    # probabilidad de la clase predicha:
+    prob_pred = float(proba[pred])
 
     return {
         "modelo": "Árbol de Decisión",
         "prediccion": int(pred),
-        "probabilidad": None,  # El árbol no tiene predict_proba si no lo entrenaste con eso
+        "probabilidad": prob_pred,
         "mensaje": "Información" if pred == 1 else "Cita Agendada",
     }
 

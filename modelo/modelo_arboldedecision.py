@@ -56,6 +56,9 @@ nuevo = pd.DataFrame([{
     'dias_consulta': 7
 }]) #[0] Genera cita
 
+proba = modelo.predict_proba(nuevo)[0]
+print("Probabilidad por clase:", proba)
+
 print(modelo.predict(nuevo))
 
 with open("../backend/modeloarbol.pkl", "wb") as file:
