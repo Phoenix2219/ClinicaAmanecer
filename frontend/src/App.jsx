@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { predecir } from "./api";
+import { predecir, predecirArbol } from "./api";
 import "./App.css";
 
 export default function App() {
@@ -11,7 +11,8 @@ export default function App() {
     Psicoterapia: 40,
   };
 
-  const [form, setForm] = useState({
+  // FORMULARIO 1 (Regresión Logística)
+  const [form1, setForm1] = useState({
     canal_origen: 0,
     tiempo_respuesta: 0,
     num_interacciones: 0,
@@ -20,86 +21,187 @@ export default function App() {
     especialidad: "Neuropsicologia",
   });
 
-  const [resultado, setResultado] = useState(null);
+  // FORMULARIO 2 (Árbol de Decisión)
+  const [form2, setForm2] = useState({
+    canal_origen: 0,
+    tiempo_respuesta: 0,
+    num_interacciones: 0,
+    precio: 60,
+    dias_consulta: 0,
+    especialidad: "Neuropsicologia",
+  });
 
-  const handleChange = (e) => {
+  const [resultadoLog, setResultadoLog] = useState(null);
+  const [resultadoArbol, setResultadoArbol] = useState(null);
+
+  // CAMBIO DE CAMPOS — FORM 1
+  const handleChange1 = (e) => {
     const { name, value } = e.target;
 
-    // Cambia precio automáticamente según especialidad
     if (name === "especialidad") {
-      setForm({
-        ...form,
+      setForm1({
+        ...form1,
         especialidad: value,
         precio: especialidades[value],
       });
     } else {
-      setForm({ ...form, [name]: value });
+      setForm1({ ...form1, [name]: value });
     }
   };
 
-  const enviar = async (e) => {
+  // CAMBIO DE CAMPOS — FORM 2
+  const handleChange2 = (e) => {
+    const { name, value } = e.target;
+
+    if (name === "especialidad") {
+      setForm2({
+        ...form2,
+        especialidad: value,
+        precio: especialidades[value],
+      });
+    } else {
+      setForm2({ ...form2, [name]: value });
+    }
+  };
+
+  // SUBMIT FORM 1 (Regresión Logística)
+  const enviar1 = async (e) => {
     e.preventDefault();
 
-    const datosEnviar = {
-      canal_origen: Number(form.canal_origen),
-      tiempo_respuesta: Number(form.tiempo_respuesta),
-      num_interacciones: Number(form.num_interacciones),
-      precio: Number(form.precio),
-      dias_consulta: Number(form.dias_consulta),
+    const datos = {
+      canal_origen: Number(form1.canal_origen),
+      tiempo_respuesta: Number(form1.tiempo_respuesta),
+      num_interacciones: Number(form1.num_interacciones),
+      precio: Number(form1.precio),
+      dias_consulta: Number(form1.dias_consulta),
     };
 
-    const data = await predecir(datosEnviar);
-    setResultado(data);
+    const data = await predecir(datos);
+    setResultadoLog(data);
+  };
+
+  // SUBMIT FORM 2 (Árbol de Decisión)
+  const enviar2 = async (e) => {
+    e.preventDefault();
+
+    const datos = {
+      canal_origen: Number(form2.canal_origen),
+      tiempo_respuesta: Number(form2.tiempo_respuesta),
+      num_interacciones: Number(form2.num_interacciones),
+      precio: Number(form2.precio),
+      dias_consulta: Number(form2.dias_consulta),
+    };
+
+    const data = await predecirArbol(datos);
+    setResultadoArbol(data);
   };
 
   return (
-    <div className="container">
-      <h2 className="title">Predictivo de Conversión de Leads</h2>
 
-      <form onSubmit={enviar} className="form">
-        
-        <label>Canal de Origen</label>
-        <select name="canal_origen" onChange={handleChange}>
-          <option value="0">Facebook</option>
-          <option value="1">Instagram</option>
-          <option value="2">TikTok</option>
-          <option value="3">Página Web</option>
-          <option value="4">WhatsApp</option>
-        </select>
 
-        <label>Especialidad</label>
-        <select name="especialidad" onChange={handleChange}>
-          {Object.keys(especialidades).map((esp) => (
-            <option key={esp} value={esp}>
-              {esp.replace("_", " ")}
-            </option>
-          ))}
-        </select>
+    <div className="main-wrapper">
+      <div className="formularios-doble">
 
-        <label>Precio</label>
-        <input type="number" name="precio" value={form.precio} readOnly />
+        {/* ---------- FORMULARIO REGRESIÓN LOGÍSTICA ---------- */}
+        <div className="container">
+          <h2 className="title">Modelo: Regresión Logística</h2>
 
-        <label>Tiempo de Respuesta (min)</label>
-        <input type="number" name="tiempo_respuesta" onChange={handleChange} />
+          <form onSubmit={enviar1} className="form">
+            <label>Canal de Origen</label>
+            <select name="canal_origen" onChange={handleChange1}>
+              <option value="0">Facebook</option>
+              <option value="1">Instagram</option>
+              <option value="2">TikTok</option>
+              <option value="3">Página Web</option>
+              <option value="4">WhatsApp</option>
+            </select>
 
-        <label>N° Interacciones</label>
-        <input type="number" name="num_interacciones" onChange={handleChange} />
+            <label>Especialidad</label>
+            <select name="especialidad" onChange={handleChange1}>
+              {Object.keys(especialidades).map((esp) => (
+                <option key={esp} value={esp}>
+                  {esp.replace("_", " ")}
+                </option>
+              ))}
+            </select>
 
-        <label>Días de Consulta</label>
-        <input type="number" name="dias_consulta" onChange={handleChange} />
+            <label>Precio</label>
+            <input type="number" name="precio" value={form1.precio} readOnly />
 
-        <button className="btn">Predecir</button>
-      </form>
+            <label>Tiempo de Respuesta (min)</label>
+            <input type="number" name="tiempo_respuesta" onChange={handleChange1} />
 
-      {resultado && (
-        <div className="resultado">
-          <h3>Resultado: <span>{resultado.mensaje}</span></h3>
-          <p>
-            Probabilidad:{" "}
-            <strong>{(resultado.probabilidad * 100).toFixed(2)}%</strong>
-          </p>
+            <label>N° Interacciones</label>
+            <input type="number" name="num_interacciones" onChange={handleChange1} />
+
+            <label>Días de Consulta</label>
+            <input type="number" name="dias_consulta" onChange={handleChange1} />
+
+            <button className="btn">Predecir Logística</button>
+          </form>
+
+          {resultadoLog && (
+            <div className="resultado">
+              <h3>Resultado: <span>{resultadoLog.mensaje}</span></h3>
+              <p>
+                Probabilidad:{" "}
+                <strong>{(resultadoLog.probabilidad * 100).toFixed(2)}%</strong>
+              </p>
+            </div>
+          )}
         </div>
-      )}
+
+        {/* ---------- FORMULARIO ÁRBOL DE DECISIÓN ---------- */}
+        <div className="container">
+          <h2 className="title">Modelo: Árbol de Decisión</h2>
+
+          <form onSubmit={enviar2} className="form">
+            <label>Canal de Origen</label>
+            <select name="canal_origen" onChange={handleChange2}>
+              <option value="0">Facebook</option>
+              <option value="1">Instagram</option>
+              <option value="2">TikTok</option>
+              <option value="3">Página Web</option>
+              <option value="4">WhatsApp</option>
+            </select>
+
+            <label>Especialidad</label>
+            <select name="especialidad" onChange={handleChange2}>
+              {Object.keys(especialidades).map((esp) => (
+                <option key={esp} value={esp}>
+                  {esp.replace("_", " ")}
+                </option>
+              ))}
+            </select>
+
+            <label>Precio</label>
+            <input type="number" name="precio" value={form2.precio} readOnly />
+
+            <label>Tiempo de Respuesta (min)</label>
+            <input type="number" name="tiempo_respuesta" onChange={handleChange2} />
+
+            <label>N° Interacciones</label>
+            <input type="number" name="num_interacciones" onChange={handleChange2} />
+
+            <label>Días de Consulta</label>
+            <input type="number" name="dias_consulta" onChange={handleChange2} />
+
+            <button className="btn">Predecir Árbol</button>
+          </form>
+
+          {resultadoArbol && (
+            <div className="resultado">
+              <h3>Resultado: <span>{resultadoArbol.mensaje}</span></h3>
+              <p>
+                Probabilidad:{" "}
+                <strong>{(resultadoArbol.probabilidad * 100).toFixed(2)}%</strong>
+              </p>
+            </div>
+          )}
+        </div>
+
+      </div>
     </div>
+
   );
 }
